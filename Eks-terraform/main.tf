@@ -38,7 +38,7 @@ locals {
 
   filtered_subnets = [
     for subnet in data.aws_subnets.public.ids :
-    subnet if substring(subnet, length(subnet)-1, 2) != local.excluded_az
+    subnet if length(regexall("us-east-1.", subnet)[0]) > 0 && substr(subnet, length(subnet)-1, 1) != substr(local.excluded_az, length(local.excluded_az))
   ]
 }
 #cluster provision
