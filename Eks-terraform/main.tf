@@ -32,6 +32,15 @@ data "aws_subnets" "public" {
     values = [data.aws_vpc.default.id]
   }
 }
+# Filter out subnets based on their IDs containing a specific Availability Zone
+locals {
+  excluded_az = "us-east-1e"
+
+  filtered_subnets = [
+    for subnet in data.aws_subnets.public.ids :
+    subnet if substring(subnet, length(subnet)-1, 2) != local.excluded_az
+  ]
+}
 #cluster provision
 resource "aws_eks_cluster" "example" {
   name     = "EKS_CLOUD"
