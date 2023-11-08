@@ -34,20 +34,20 @@ data "aws_subnets" "public" {
 }
 # Filter out subnets based on their IDs containing a specific Availability Zone
 locals {
-  excluded_az = "us-east-1e"
-
-  filtered_subnets = [
-    for subnet in data.aws_subnets.public.ids :
-    subnet if length(regexall("us-east-1.", subnet)[0]) > 0 && substr(subnet, length(subnet)-1, 1) != substr(local.excluded_az, length(local.excluded_az))
-  ]
+  filtered_subnets = [for zone in data.aws_subnets.public.ids: zone if zone != "subnet-0f452938a9d6ddb25"]
 }
+
+output "subnets" {
+  value = local.filtered_subnets
+}
+
 #cluster provision
 resource "aws_eks_cluster" "example" {
   name     = "EKS_CLOUD"
   role_arn = aws_iam_role.example.arn
 
   vpc_config {
-    subnet_ids = data.aws_subnets.public.ids
+    subnet_ids = local.filtered_subnets
   }
 
   # Ensure that IAM Role permissions are created before and deleted after EKS Cluster handling.
